@@ -8,9 +8,8 @@ class Parameters():
             'url':'https://portal.esstu.ru/bakalavriat/raspisan.htm'
         }
         if exists('params.json'):
-            with open('params.json') as f:
-                templates = json.load(f)
-            params =json.load(templates)
+            with open('params.json','r') as f:
+                params = json.load(f)
         else:
             # сохранить параметры
             with open('params.json','w') as f:

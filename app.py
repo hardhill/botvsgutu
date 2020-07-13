@@ -15,6 +15,7 @@ class Application(object):
             error = serv.LoadPage(params.url)
         if error == 1:
             error = serv.Process()
+
         serv.Finish()
 
 
