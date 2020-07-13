@@ -12,10 +12,15 @@ class Application(object):
         serv = ServBot()
         error = serv.Start()
         if error == 1:
-            error = serv.LoadPage(params.url)
-        if error == 1:
-            error = serv.Process()
-
+            erCount = 0
+            while True and erCount<6:
+                erCount+=1
+                error = serv.LoadPage(params.url)
+                if error == 1:
+                    error = serv.Process()
+                if error == 1:
+                    break
+            print('Число ошибок',erCount)
         serv.Finish()
 
 

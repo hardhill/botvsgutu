@@ -26,7 +26,7 @@ class ServBot():
         try:
             self.driver = webdriver.Chrome(options=options)
             self.wait: WebDriverWait = WebDriverWait(self.driver, 15)
-            self.driver.set_window_size(640,1000)
+            self.driver.set_window_size(640,900)
             self.driver.set_window_position(1000,10,'current')
             print(self._TL(), 'Инициализация драйвера')
             return _Errcode("None")
@@ -80,13 +80,11 @@ class ServBot():
             except Exception as err:
                 print(self._TL(),'(E)Ошибка обработки страниц расписаний',err)
                 return _Errcode("ProcessTable")
-            finally:
-                pass
         print(arr_tables)
-        with open('timetable.json', 'w') as f:
-            json.dump(arr_tables, f,ensure_ascii=True)
+        with open('timetable.json', 'w',encoding='utf8') as f:
+            json.dump(arr_tables, f,ensure_ascii=False)
 
-
+            
         return _Errcode('None')
 
     def _Tabletime(self,inptable):
