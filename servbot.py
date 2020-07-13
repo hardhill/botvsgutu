@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+import mysql.connector
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -8,9 +9,13 @@ from selenium.webdriver.common.by import By
 
 
 def _Errcode(codename):
-    d = {'None': 1, 'Start': 2, 'LoadPage': 3, "Process": 4, "ProcessTable": 5}
+    d = {'None': 1, 'Start': 2, 'LoadPage': 3, "Process": 4, "ProcessTable": 5, "DB":6}
     return d.get(codename)
 
+
+def _NormalizeDate(param):
+    dt = datetime.strptime(param, '%d.%m.%Y').strftime('%Y-%m-%d')
+    return dt
 
 
 
@@ -80,12 +85,15 @@ class ServBot():
             except Exception as err:
                 print(self._TL(),'(E)Ошибка обработки страниц расписаний',err)
                 return _Errcode("ProcessTable")
-        print(arr_tables)
+
         with open('timetable.json', 'w',encoding='utf8') as f:
             json.dump(arr_tables, f,ensure_ascii=False)
+        try:
+            self._SaveDB(arr_tables)
+            return _Errcode('None')
+        except:
+            return _Errcode("DB")
 
-            
-        return _Errcode('None')
 
     def _Tabletime(self,inptable):
         self.table = {
@@ -193,6 +201,47 @@ class ServBot():
             }
         }
         return self.table
+
+    def _SaveDB(self, arr_tables):
+        try:
+            ctx = mysql.connector.connect(user='host1608830_timet',
+                                            password='Mer1daCX400',
+                                            host='mysql16.hostland.ru',
+                                            port='3306',
+                                          database='host1608830_timet')
+            SQL_CREATE = """
+                CREATE TABLE IF NOT EXISTS `timetable` (`id` int(11) NOT NULL AUTO_INCREMENT,
+                `sgroup` varchar(50) NOT NULL DEFAULT '0', 
+                `datetable` date NOT NULL,`ttable` json NOT NULL, PRIMARY KEY (`id`)) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            """
+            try:
+                cursor = ctx.cursor()
+                cursor.execute(SQL_CREATE)
+                print(self._TL(),'Таблица создана')
+                try:
+                    for one_table in arr_tables:
+                        print(one_table)
+                        groupname = one_table["group"]
+                        dt = _NormalizeDate(one_table["date"])
+                        tb = one_table["table"]
+                        SQL_INSERT = "INSERT INTO timetable (sgroup,datetable,ttable) VALUES('"+\
+                                     groupname+"',DATE('"+\
+                                     dt+"'),'"+json.dumps(tb,ensure_ascii=False)+"')"
+
+                        cursor.execute(SQL_INSERT)
+                        ctx.commit()
+                except Exception as err:
+                    print(self._TL(), '(E)Ошибка добавления данных', err)
+            except Exception as err:
+                print(self._TL(), '(E)Ошибка создания таблицы',err)
+            finally:
+                ctx.close()
+
+        except Exception as err:
+            print(self._TL(),'(E)Ошибка работы с БД',err.args)
+
+
 
 
 

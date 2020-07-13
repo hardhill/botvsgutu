@@ -20,7 +20,7 @@ class Application(object):
                     error = serv.Process()
                 if error == 1:
                     break
-            print('Число ошибок',erCount)
+            print('Число ошибок',erCount-1)
         serv.Finish()
 
 
