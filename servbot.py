@@ -218,13 +218,19 @@ class ServBot():
             try:
                 cursor = ctx.cursor()
                 cursor.execute(SQL_CREATE)
-                print(self._TL(),'Таблица создана')
+                print(self._TL(),'Таблица готова')
+
+                SQL_DELETE = "DELETE FROM timetable"
+                cursor.execute(SQL_DELETE)
+                ctx.commit()
+                print(self._TL(), 'Удалены старые данные (если имелись)')
                 try:
                     for one_table in arr_tables:
                         print(one_table)
                         groupname = one_table["group"]
                         dt = _NormalizeDate(one_table["date"])
                         tb = one_table["table"]
+
                         SQL_INSERT = "INSERT INTO timetable (sgroup,datetable,ttable) VALUES('"+\
                                      groupname+"',DATE('"+\
                                      dt+"'),'"+json.dumps(tb,ensure_ascii=False)+"')"
