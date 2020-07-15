@@ -82,6 +82,7 @@ class ServBot():
                     el_table = self.driver.find_element_by_xpath('//table/tbody')
                     table = self._Tabletime(el_table)
                     item_group["table"] = table
+                    item_group.pop("url")
                 except Exception as err:
                     print(TL(), '(E)Ошибка обработки страниц расписаний', err)
                     return _Errcode("ProcessTable")
@@ -95,7 +96,7 @@ class ServBot():
         with open('timetable.json', 'w',encoding='utf8') as f:
             json.dump(common_table, f,ensure_ascii=False)
         try:
-            self._SaveDB(data_text,common_table)
+            self._SaveDB(data_text[0],common_table)
             return _Errcode('None')
         except:
             return _Errcode("DB")
@@ -231,7 +232,7 @@ class ServBot():
                 print(TL(), 'Удалены старые данные (если имелись)')
                 try:
                         dt = _NormalizeDate(data_text)
-                        tb = arr_table["table"]
+                        tb = arr_table
                         SQL_INSERT = "INSERT INTO timetable (datetable,ttable) VALUES(DATE('"+\
                                      dt+"'),'"+json.dumps(tb,ensure_ascii=False)+"')"
                         cursor.execute(SQL_INSERT)
