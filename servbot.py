@@ -51,42 +51,51 @@ class ServBot():
         self.driver.quit()
         print(TL(),'Работа завршена')
 
+    @property
     def Process(self):
-        elements = self.driver.find_elements_by_xpath('//a')
-        list_a = []
-        print(TL(),'Начинаю обработку страницы')
-        for el_anchor in elements:
-            el =el_anchor.find_element_by_tag_name('font')
-            if el.text!='':
-                list_a.append(el_anchor.get_attribute('href'))
+        print(TL(), 'Начинаю обработку страницы')
+        data_text = self.driver.find_element_by_xpath("/html/body/p[1]").text.rsplit(None, 1)[-1],
+        common_table = []
+        rows_count = len(self.driver.find_elements_by_xpath('//tr'))-1
+        arr_course = []
+        el_courses = self.driver.find_elements_by_xpath('//tr[1]/td')
+        for el in el_courses:
+            arr_course.append(el.text)
+        for id_col,course in enumerate(arr_course):
+            arr_groups = []
+            for id_row in range(rows_count):
+                _col = id_col+1;  _row = id_row+2
+                el_cell = self.driver.find_element_by_xpath('//tr['+str(_row)+']/td['+str(_col)+']/p/a')
+                if el_cell.text != "":
+                    arr_groups.append({"grname":el_cell.text,"url":el_cell.get_attribute('href')})
+            course_table = {"course": course, "groups": arr_groups}
+            common_table.append(course_table)
+        print(common_table)
 
-        print(list_a)
+        for item_course in common_table:
+            for item_group in item_course["groups"]:
+                url = item_group["url"]
+                try:
+                    self.driver.get(url)
+                    print(TL(),url)
+                    self.wait.until(EC.presence_of_element_located((By.XPATH, '//table')))
+                    el_table = self.driver.find_element_by_xpath('//table/tbody')
+                    table = self._Tabletime(el_table)
+                    item_group["table"] = table
+                except Exception as err:
+                    print(TL(), '(E)Ошибка обработки страниц расписаний', err)
+                    return _Errcode("ProcessTable")
+
+
+        print(common_table)
         print(TL(), 'Обработка страницы завершена')
-        #массив расписаний
-        arr_tables = []
-        for item in list_a:
-            try:
-                self.driver.get(item)
-                print(TL(),item)
-                self.wait.until(EC.presence_of_element_located((By.XPATH,'//table')))
-                el_p1 = self.driver.find_element(By.XPATH,"//p[contains(text(),'Расписание обновлено')]")
-                el_p2 = self.driver.find_element(By.XPATH,'/html[1]/body[1]/p[2]/font[2]')
-                el_table = self.driver.find_element_by_xpath('//table/tbody')
-                table = self._Tabletime(el_table)
-                tabletime = {
-                    'group':el_p2.text.strip(),
-                    'date':el_p1.text.rsplit(None, 1)[-1],
-                    'table': table
-                }
-                arr_tables.append(tabletime)
-            except Exception as err:
-                print(TL(),'(E)Ошибка обработки страниц расписаний',err)
-                return _Errcode("ProcessTable")
+
+
 
         with open('timetable.json', 'w',encoding='utf8') as f:
-            json.dump(arr_tables, f,ensure_ascii=False)
+            json.dump(common_table, f,ensure_ascii=False)
         try:
-            self._SaveDB(arr_tables)
+            self._SaveDB(data_text,common_table)
             return _Errcode('None')
         except:
             return _Errcode("DB")
@@ -199,7 +208,7 @@ class ServBot():
         }
         return self.table
 
-    def _SaveDB(self, arr_tables):
+    def _SaveDB(self,data_text, arr_table):
         try:
             ctx = mysql.connector.connect(user='host1608830_timet',
                                             password='Mer1daCX400',
@@ -208,7 +217,6 @@ class ServBot():
                                           database='host1608830_timet')
             SQL_CREATE = """
                 CREATE TABLE IF NOT EXISTS `timetable` (`id` int(11) NOT NULL AUTO_INCREMENT,
-                `sgroup` varchar(50) NOT NULL DEFAULT '0', 
                 `datetable` date NOT NULL,`ttable` json NOT NULL, PRIMARY KEY (`id`)) 
                 ENGINE=InnoDB DEFAULT CHARSET=utf8;
             """
@@ -222,16 +230,10 @@ class ServBot():
                 ctx.commit()
                 print(TL(), 'Удалены старые данные (если имелись)')
                 try:
-                    for one_table in arr_tables:
-                        print(one_table)
-                        groupname = one_table["group"]
-                        dt = _NormalizeDate(one_table["date"])
-                        tb = one_table["table"]
-
-                        SQL_INSERT = "INSERT INTO timetable (sgroup,datetable,ttable) VALUES('"+\
-                                     groupname+"',DATE('"+\
+                        dt = _NormalizeDate(data_text)
+                        tb = arr_table["table"]
+                        SQL_INSERT = "INSERT INTO timetable (datetable,ttable) VALUES(DATE('"+\
                                      dt+"'),'"+json.dumps(tb,ensure_ascii=False)+"')"
-
                         cursor.execute(SQL_INSERT)
                         ctx.commit()
                 except Exception as err:

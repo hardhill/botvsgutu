@@ -17,7 +17,7 @@ class Application(object):
                 erCount+=1
                 error = serv.LoadPage(params.url)
                 if error == 1:
-                    error = serv.Process()
+                    error = serv.Process
                 if error == 1:
                     break
             print('Число ошибок',erCount-1)
