@@ -5,7 +5,7 @@ from servbot import ServBot
 class Application(object):
     def __init__(self):
         print('=====================================================================')
-        print('             Timetable bot VSGUTU ver. 1.0                           ')
+        print('             Timetable bot VSGUTU ver. 2.0                           ')
         print('=====================================================================')
     def Start(self):
         params = Parameters()
