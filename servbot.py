@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 def _Errcode(codename):
-    d = {'None': 1, 'Start': 2, 'LoadPage': 3, "Process": 4, "ProcessTable": 5, "DB":6}
+    d = {'None': 0, 'Start': 1, 'LoadPage': 2, "Process": 3, "ProcessTable": 4, "DB":5}
     return d.get(codename)
 
 def _NormalizeDate(param):
@@ -71,7 +71,7 @@ class ServBot():
             course_table = {"course": course, "groups": arr_groups}
             common_table.append(course_table)
         print(common_table)
-
+        #обработка всех груп
         for item_course in common_table:
             for item_group in item_course["groups"]:
                 url = item_group["url"]
