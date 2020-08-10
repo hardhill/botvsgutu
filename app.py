@@ -15,7 +15,7 @@ class Application(object):
             erCount = 0
             while True and erCount<6:
                 erCount+=1
-                error = serv.LoadPage(params.url_bakal)
+                error = serv.LoadPage(params.url_spec)
                 if error == 0:
                     error = serv.Process
                 if error == 0:
