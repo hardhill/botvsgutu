@@ -51,8 +51,8 @@ class ServBot():
         self.driver.quit()
         print(TL(),'Работа завршена')
 
-    @property
-    def Process(self):
+
+    def Process(self,spec):
         print(TL(), 'Начинаю обработку страницы')
         data_text = self.driver.find_element_by_xpath("/html/body/p[1]").text.rsplit(None, 1)[-1],
         common_table = []
@@ -96,7 +96,7 @@ class ServBot():
         with open('timetable.json', 'w',encoding='utf8') as f:
             json.dump(common_table, f,ensure_ascii=False)
         try:
-            self._SaveDB(data_text[0],common_table)
+            self._SaveDB(data_text[0],common_table,spec)
             return _Errcode('None')
         except:
             return _Errcode("DB")
@@ -208,8 +208,8 @@ class ServBot():
             }
         }
         return self.table
-
-    def _SaveDB(self,data_text, arr_table):
+# сохранить в БД дату расписания, сами данные, специалитет
+    def _SaveDB(self,data_text, arr_table,spec):
         try:
             ctx = mysql.connector.connect(user='host1608830_timet',
                                             password='Mer1daCX400',
@@ -218,7 +218,8 @@ class ServBot():
                                           database='host1608830_timet')
             SQL_CREATE = """
                 CREATE TABLE IF NOT EXISTS `timetable` (`id` int(11) NOT NULL AUTO_INCREMENT,
-                `datetable` date NOT NULL,`ttable` json NOT NULL, PRIMARY KEY (`id`)) 
+                `datetable` date NOT NULL,`ttable` json NOT NULL, PRIMARY KEY (`id`),
+                `spec` VARCHAR(50) NOT NULL) 
                 ENGINE=InnoDB DEFAULT CHARSET=utf8;
             """
             try:
@@ -226,15 +227,16 @@ class ServBot():
                 cursor.execute(SQL_CREATE)
                 print(TL(),'Таблица готова')
 
-                SQL_DELETE = "DELETE FROM timetable"
+                SQL_DELETE = "DELETE FROM timetable WHERE spec = '{}'".format(spec)
                 cursor.execute(SQL_DELETE)
                 ctx.commit()
                 print(TL(), 'Удалены старые данные (если имелись)')
                 try:
                         dt = _NormalizeDate(data_text)
-                        tb = arr_table
-                        SQL_INSERT = "INSERT INTO timetable (datetable,ttable) VALUES(DATE('"+\
-                                     dt+"'),'"+json.dumps(tb,ensure_ascii=False)+"')"
+                        tb = json.dumps(arr_table, ensure_ascii=False)
+                        tb= tb.replace('\'','`')
+                        SQL_INSERT = "INSERT INTO timetable (datetable,ttable, spec) VALUES(DATE('"+\
+                                     dt+"'),'"+tb+"','"+spec+"')"
                         cursor.execute(SQL_INSERT)
                         ctx.commit()
                 except Exception as err:
