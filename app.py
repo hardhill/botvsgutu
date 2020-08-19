@@ -15,9 +15,15 @@ class Application(object):
             erCount = 0
             while True and erCount<6:
                 erCount+=1
+
                 error = serv.LoadPage(params.url_bakal)
                 if error == 0:
-                    error = serv.Process
+                    error = serv.Process("bakalavriat")
+                if error == 0:
+                    break
+                error = serv.LoadPage(params.url_spec)
+                if error == 0:
+                    error = serv.Process("magistratura")
                 if error == 0:
                     break
             print('Число ошибок',erCount-1)
