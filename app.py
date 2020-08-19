@@ -20,8 +20,7 @@ class Application(object):
                 if error == 0:
                     error = serv.Process("bakalavriat")
                 if error == 0:
-                    break
-                error = serv.LoadPage(params.url_spec)
+                    error = serv.LoadPage(params.url_spec)
                 if error == 0:
                     error = serv.Process("magistratura")
                 if error == 0:
