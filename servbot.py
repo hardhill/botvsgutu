@@ -54,7 +54,10 @@ class ServBot():
 
     def Process(self,spec):
         print(TL(), 'Начинаю обработку страницы')
-        data_text = self.driver.find_element_by_xpath("/html/body/p[1]").text.rsplit(None, 1)[-1],
+        try:
+            data_text = self.driver.find_element_by_xpath("/html/body/p[1]").text.rsplit(None, 1)[-1],
+        except:
+            data_text = ["01.09.2020"]
         common_table = []
         rows_count = len(self.driver.find_elements_by_xpath('//tr'))-1
         arr_course = []
